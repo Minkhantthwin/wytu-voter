@@ -1,0 +1,63 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admins")
+}
+
+model Candidate {
+  id        Int      @id @default(autoincrement())
+  name      String
+  photoUrl  String?  @map("photo_url")
+  category  Category
+  voteCount Int      @default(0) @map("vote_count")
+
+  kingVotes  Vote[] @relation("KingVotes")
+  queenVotes Vote[] @relation("QueenVotes")
+
+  @@map("candidates")
+}
+
+model Vote {
+  id        Int      @id @default(autoincrement())
+  ipAddress String   @map("ip_address")
+  cookieId  String   @map("cookie_id")
+  kingId    Int?     @map("king_id")
+  queenId   Int?     @map("queen_id")
+  votedAt   DateTime @default(now()) @map("voted_at")
+
+  king  Candidate? @relation("KingVotes", fields: [kingId], references: [id])
+  queen Candidate? @relation("QueenVotes", fields: [queenId], references: [id])
+
+  @@unique([ipAddress, cookieId])
+  @@map("votes")
+}
+
+enum Category {
+  king
+  queen
+}
+
+model Setting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
