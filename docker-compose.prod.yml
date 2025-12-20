@@ -8,7 +8,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - DATABASE_URL=mysql://wytu_user:${DB_PASSWORD}@db:3306/wytu_voting
+      - DATABASE_URL=mysql://wytu_user:${DB_PASSWORD_ENCODED}@db:3306/wytu_voting
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=24h
     depends_on:
