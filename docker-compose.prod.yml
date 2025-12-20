@@ -25,6 +25,27 @@ services:
       - "traefik.http.routers.wytu.tls.certresolver=letsencrypt"
       - "traefik.http.services.wytu.loadbalancer.server.port=3000"
 
+  prisma-studio:
+    image: ghcr.io/${IMAGE_NAME}:latest
+    container_name: wytu-voter-studio
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=mysql://wytu_user:${DB_PASSWORD}@db:3306/wytu_voting
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - wytu-network
+    command: ["npx", "prisma", "studio", "--port", "5555", "--browser", "none"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.studio.rule=Host(`studio.${DOMAIN}`)"
+      - "traefik.http.routers.studio.tls=true"
+      - "traefik.http.routers.studio.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.studio.middlewares=studio-auth"
+      - "traefik.http.middlewares.studio-auth.basicauth.users=${STUDIO_AUTH}"
+      - "traefik.http.services.studio.loadbalancer.server.port=5555"
+
   db:
     image: mysql:8.0
     container_name: wytu-voter-db

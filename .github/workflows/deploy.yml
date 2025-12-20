@@ -106,11 +106,12 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           ACME_EMAIL: ${{ secrets.ACME_EMAIL }}
           TRAEFIK_AUTH: ${{ secrets.TRAEFIK_AUTH }}
+          STUDIO_AUTH: ${{ secrets.STUDIO_AUTH }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          envs: IMAGE_NAME,GH_TOKEN,GH_ACTOR,DOMAIN,DB_PASSWORD,DB_ROOT_PASSWORD,JWT_SECRET,ACME_EMAIL,TRAEFIK_AUTH
+          envs: IMAGE_NAME,GH_TOKEN,GH_ACTOR,DOMAIN,DB_PASSWORD,DB_ROOT_PASSWORD,JWT_SECRET,ACME_EMAIL,TRAEFIK_AUTH,STUDIO_AUTH
           script: |
             cd ~/wytu-voter
             
@@ -128,6 +129,7 @@ jobs:
             JWT_SECRET=${JWT_SECRET}
             ACME_EMAIL=${ACME_EMAIL}
             TRAEFIK_AUTH=${TRAEFIK_AUTH}
+            STUDIO_AUTH=${STUDIO_AUTH}
             IMAGE_NAME=${IMAGE_NAME}
             EOF
             
