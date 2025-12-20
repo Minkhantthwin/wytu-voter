@@ -24,3 +24,6 @@ Thumbs.db
 client/.env
 client/.env.local
 client/.env.*.local
+
+# public/uploads
+public/uploads/

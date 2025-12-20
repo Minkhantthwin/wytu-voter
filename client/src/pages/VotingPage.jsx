@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { candidatesAPI, voteAPI, settingsAPI } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -187,43 +188,44 @@ export default function VotingPage() {
     <div className="min-h-screen bg-gradient-to-br from-accent to-muted">
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-sm shadow-sm border-b border-border sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-lg">
-                <Crown className="h-6 w-6 text-primary-foreground" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-3 sm:py-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-primary rounded-lg">
+                <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">King & Queen Voting</h1>
-                <p className="text-sm text-muted-foreground">CEIT Fresher Welcome 2025</p>
+                <h1 className="text-base sm:text-xl font-bold text-foreground">King & Queen Voting</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">CEIT Fresher Welcome 2025</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={handleViewResults}>
-              <Trophy className="h-4 w-4 mr-2" />
-              Results
+            <Button variant="outline" size="sm" onClick={handleViewResults} className="text-xs sm:text-sm px-2 sm:px-3">
+              <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden xs:inline">Results</span>
+              <span className="xs:hidden">📊</span>
             </Button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Instructions */}
-        <Card className="mb-8">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
-                <Vote className="h-6 w-6 text-primary" />
+        <Card className="mb-4 sm:mb-8">
+          <CardContent className="pt-4 sm:pt-6 pb-4">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                <Vote className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold mb-2">How to Vote</h2>
-                <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                <h2 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">How to Vote</h2>
+                <ol className="list-decimal list-inside space-y-0.5 sm:space-y-1 text-xs sm:text-sm text-muted-foreground">
                   <li>Select one candidate for King</li>
                   <li>Select one candidate for Queen</li>
                   <li>Click "Submit Vote" button</li>
                   <li>Confirm your selection</li>
                 </ol>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-1 sm:mt-2">
                   ⚠️ You can only vote once. Choose carefully!
                 </p>
               </div>
@@ -233,8 +235,8 @@ export default function VotingPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 flex items-center gap-2 p-4 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20">
-            <AlertCircle className="h-4 w-4" />
+          <div className="mb-4 sm:mb-6 flex items-center gap-2 p-3 sm:p-4 text-xs sm:text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20">
+            <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
             {error}
           </div>
         )}
@@ -245,19 +247,19 @@ export default function VotingPage() {
             <CandidatesSectionSkeleton title="Vote for Queen" />
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* King Candidates */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Crown className="h-5 w-5 text-primary" />
-                <h2 className="text-2xl font-bold">Vote for King</h2>
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <Crown className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                <h2 className="text-lg sm:text-2xl font-bold">Vote for King</h2>
                 {selectedKing && (
-                  <span className="ml-auto text-sm text-primary font-medium">
+                  <span className="ml-auto text-xs sm:text-sm text-primary font-medium">
                     ✓ Selected
                   </span>
                 )}
               </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
                 {candidates.kings.map((candidate) => (
                   <VoteCard
                     key={candidate.id}
@@ -271,16 +273,16 @@ export default function VotingPage() {
 
             {/* Queen Candidates */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Crown className="h-5 w-5 text-accent-foreground" />
-                <h2 className="text-2xl font-bold">Vote for Queen</h2>
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <Crown className="h-4 w-4 sm:h-5 sm:w-5 text-accent-foreground" />
+                <h2 className="text-lg sm:text-2xl font-bold">Vote for Queen</h2>
                 {selectedQueen && (
-                  <span className="ml-auto text-sm text-primary font-medium">
+                  <span className="ml-auto text-xs sm:text-sm text-primary font-medium">
                     ✓ Selected
                   </span>
                 )}
               </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
                 {candidates.queens.map((candidate) => (
                   <VoteCard
                     key={candidate.id}
@@ -296,12 +298,12 @@ export default function VotingPage() {
 
         {/* Submit Button */}
         {!loading && (
-          <div className="mt-8 flex justify-center">
+          <div className="mt-6 sm:mt-8 flex justify-center px-2">
             <Button
               size="lg"
               onClick={handleVoteClick}
               disabled={!selectedKing || !selectedQueen || submitting}
-              className="min-w-[200px]"
+              className="w-full sm:w-auto sm:min-w-[200px] text-sm sm:text-base"
             >
               {submitting ? (
                 <>
@@ -386,14 +388,11 @@ export default function VotingPage() {
 }
 
 function VoteCard({ candidate, isSelected, onSelect }) {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-  const photoUrl = candidate.photoUrl
-    ? `${API_BASE_URL}${candidate.photoUrl}`
-    : null;
+  const photoUrl = candidate.photoUrl ? getImageUrl(candidate.photoUrl) : null;
 
   return (
     <Card
-      className={`overflow-hidden cursor-pointer transition-all hover:shadow-lg ${
+      className={`overflow-hidden cursor-pointer transition-all hover:shadow-lg active:scale-[0.98] ${
         isSelected ? 'ring-2 ring-primary shadow-lg' : ''
       }`}
       onClick={onSelect}
@@ -407,20 +406,20 @@ function VoteCard({ candidate, isSelected, onSelect }) {
           />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <Users className="h-16 w-16 text-muted-foreground" />
+            <Users className="h-10 w-10 sm:h-16 sm:w-16 text-muted-foreground" />
           </div>
         )}
         {isSelected && (
           <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-            <div className="p-2 bg-primary rounded-full">
-              <CheckCircle2 className="h-8 w-8 text-primary-foreground" />
+            <div className="p-1.5 sm:p-2 bg-primary rounded-full">
+              <CheckCircle2 className="h-5 w-5 sm:h-8 sm:w-8 text-primary-foreground" />
             </div>
           </div>
         )}
       </div>
-      <CardContent className="p-4 text-center">
-        <h3 className="font-semibold text-lg">{candidate.name}</h3>
-        <p className="text-sm text-muted-foreground capitalize mt-1">
+      <CardContent className="p-2 sm:p-4 text-center">
+        <h3 className="font-semibold text-sm sm:text-lg leading-tight truncate">{candidate.name}</h3>
+        <p className="text-xs sm:text-sm text-muted-foreground capitalize mt-0.5 sm:mt-1 hidden sm:block">
           {candidate.category} Candidate
         </p>
       </CardContent>
@@ -431,17 +430,17 @@ function VoteCard({ candidate, isSelected, onSelect }) {
 function CandidatesSectionSkeleton({ title }) {
   return (
     <div>
-      <div className="flex items-center gap-2 mb-4">
-        <Skeleton className="h-5 w-5" />
-        <Skeleton className="h-8 w-48" />
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+        <Skeleton className="h-4 w-4 sm:h-5 sm:w-5" />
+        <Skeleton className="h-6 sm:h-8 w-32 sm:w-48" />
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="overflow-hidden">
             <Skeleton className="aspect-square w-full" />
-            <CardContent className="p-4 text-center">
-              <Skeleton className="h-6 w-32 mx-auto mb-2" />
-              <Skeleton className="h-4 w-24 mx-auto" />
+            <CardContent className="p-2 sm:p-4 text-center">
+              <Skeleton className="h-4 sm:h-6 w-20 sm:w-32 mx-auto mb-1 sm:mb-2" />
+              <Skeleton className="h-3 sm:h-4 w-16 sm:w-24 mx-auto hidden sm:block" />
             </CardContent>
           </Card>
         ))}
