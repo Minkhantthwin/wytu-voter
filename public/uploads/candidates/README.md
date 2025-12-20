@@ -1,4 +1,4 @@
-# Candidate Photos
+# Candidate Photoss
 
 Place candidate photos in this directory with the following naming convention:
 
