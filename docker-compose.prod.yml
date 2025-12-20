@@ -37,6 +37,12 @@ services:
     networks:
       - wytu-network
     command: ["sh", "-c", "npx prisma studio --port 5555 --browser none --hostname 0.0.0.0"]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5555"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.studio.rule=Host(`studio.${DOMAIN}`)"
@@ -83,7 +89,7 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-      - "--log.level=DEBUG"
+      - "--log.level=INFO"
     ports:
       - "80:80"
       - "443:443"
