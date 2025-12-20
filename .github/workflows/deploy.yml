@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository_owner }}/${{ github.event.repository.name }}
 
 jobs:
   test:
@@ -72,7 +72,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -86,61 +86,69 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Copy files to server
+      - name: Set image name lowercase
+        id: image
+        run: |
+          echo "name=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Copy docker-compose to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker-compose.yml"
+          source: "docker-compose.yml,docker-compose.prod.yml"
           target: "~/wytu-voter"
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE_NAME: ${{ steps.image.outputs.name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          envs: IMAGE_NAME,GH_TOKEN,GH_ACTOR
           script: |
             cd ~/wytu-voter
             
             # Login to GitHub Container Registry
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
             
             # Pull the latest image
-            docker pull ghcr.io/${{ github.repository }}:latest
+            docker pull ghcr.io/${IMAGE_NAME}:latest
             
             # Create .env file if it doesn't exist
             if [ ! -f .env ]; then
               echo "Creating .env file..."
-              cat > .env << EOF
+              cat > .env << 'ENVEOF'
             DOMAIN=${{ secrets.DOMAIN }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             ACME_EMAIL=${{ secrets.ACME_EMAIL }}
             TRAEFIK_AUTH=${{ secrets.TRAEFIK_AUTH }}
-            EOF
+            IMAGE_NAME=${IMAGE_NAME}
+            ENVEOF
             fi
             
-            # Update docker-compose to use the pre-built image
-            sed -i 's|build:|image: ghcr.io/${{ github.repository }}:latest\n    # build:|g' docker-compose.yml
+            # Update IMAGE_NAME in .env
+            sed -i "s|^IMAGE_NAME=.*|IMAGE_NAME=${IMAGE_NAME}|" .env
             
-            # Stop existing containers and start new ones
-            docker compose down
-            docker compose up -d
+            # Use production compose file
+            docker compose -f docker-compose.prod.yml down
+            docker compose -f docker-compose.prod.yml up -d
             
             # Wait for services to be healthy
             sleep 30
             
             # Run database migrations
-            docker compose exec -T app npx prisma db push --skip-generate
-            
-            # Seed database if needed (only first time)
-            # docker compose exec -T app npx prisma db seed
+            docker compose -f docker-compose.prod.yml exec -T app npx prisma db push --skip-generate || true
             
             # Clean up old images
             docker image prune -f
             
             # Show status
-            docker compose ps
+            docker compose -f docker-compose.prod.yml ps
