@@ -7,7 +7,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Enable sending cookies with requests
+  withCredentials: true,
 });
 
 // Request interceptor to add auth token
@@ -40,44 +40,44 @@ api.interceptors.response.use(
   }
 );
 
-// Auth API
+// Auth API - removed /api prefix since it's in baseURL
 export const authAPI = {
-  login: (email, password) => api.post('/api/admin/login', { email, password }),
-  getProfile: () => api.get('/api/admin/me'),
+  login: (email, password) => api.post('/admin/login', { email, password }),
+  getProfile: () => api.get('/admin/me'),
   changePassword: (currentPassword, newPassword) =>
-    api.put('/api/admin/password', { currentPassword, newPassword }),
+    api.put('/admin/password', { currentPassword, newPassword }),
   register: (email, password, name) =>
-    api.post('/api/admin/register', { email, password, name }),
+    api.post('/admin/register', { email, password, name }),
 };
 
 // Candidates API
 export const candidatesAPI = {
-  getAll: () => api.get('/api/candidates'),
-  getById: (id) => api.get(`/api/candidates/${id}`),
-  create: (data) => api.post('/api/candidates', data),
-  update: (id, data) => api.put(`/api/candidates/${id}`, data),
-  delete: (id) => api.delete(`/api/candidates/${id}`),
+  getAll: () => api.get('/candidates'),
+  getById: (id) => api.get(`/candidates/${id}`),
+  create: (data) => api.post('/candidates', data),
+  update: (id, data) => api.put(`/candidates/${id}`, data),
+  delete: (id) => api.delete(`/candidates/${id}`),
 };
 
 // Vote API
 export const voteAPI = {
-  submit: (kingId, queenId) => api.post('/api/vote', { kingId, queenId }),
-  check: () => api.get('/api/check'),
+  submit: (kingId, queenId) => api.post('/vote', { kingId, queenId }),
+  check: () => api.get('/check'),
 };
 
 // Results API
 export const resultsAPI = {
-  getAll: () => api.get('/api/results'),
-  getSummary: () => api.get('/api/results/summary'),
+  getAll: () => api.get('/results'),
+  getSummary: () => api.get('/results/summary'),
 };
 
 // Settings API
 export const settingsAPI = {
-  getAll: () => api.get('/api/settings'),
-  getResultsAnnounced: () => api.get('/api/settings/results-announced'),
-  setResultsAnnounced: (announced) => api.put('/api/settings/results-announced', { announced }),
-  getVotingOpen: () => api.get('/api/settings/voting-open'),
-  setVotingOpen: (open) => api.put('/api/settings/voting-open', { open }),
+  getAll: () => api.get('/settings'),
+  getResultsAnnounced: () => api.get('/settings/results-announced'),
+  setResultsAnnounced: (announced) => api.put('/settings/results-announced', { announced }),
+  getVotingOpen: () => api.get('/settings/voting-open'),
+  setVotingOpen: (open) => api.put('/settings/voting-open', { open }),
 };
 
 // Upload API
@@ -88,7 +88,7 @@ export const uploadAPI = {
     if (candidateId) {
       formData.append('candidateId', candidateId);
     }
-    return api.post('/api/upload', formData, {
+    return api.post('/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
