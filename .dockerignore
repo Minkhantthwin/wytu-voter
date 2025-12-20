@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+client/node_modules
+
+# Git
+.git
+.gitignore
+
+# Environment files (we'll use Docker secrets/env)
+.env
+.env.*
+client/.env
+client/.env.*
+
+# IDE
+.vscode
+.idea
+
+# Build artifacts
+client/dist
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+*.test.js
+*.spec.js
+__tests__
+
+# Prisma SQLite (if any)
+prisma/*.db
+prisma/*.db-journal
