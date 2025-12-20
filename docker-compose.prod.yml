@@ -17,7 +17,7 @@ services:
     networks:
       - wytu-network
     volumes:
-      - uploads:/app/public/uploads
+      - uploads:/app/public/uploads/candidates
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.wytu.rule=Host(`${DOMAIN}`)"

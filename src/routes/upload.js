@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
     const uploadPath = path.join(__dirname, '../../public/uploads/candidates');
     // Ensure directory exists
     if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
+      fs.mkdirSync(uploadPath, { recursive: true, mode: 0o755 });
     }
     cb(null, uploadPath);
   },
@@ -98,6 +98,13 @@ router.post('/', authMiddleware, upload.single('photo'), async (req, res) => {
     }
 
     const { candidateId } = req.body;
+
+    // Set proper file permissions
+    try {
+      fs.chmodSync(req.file.path, 0o644);
+    } catch (chmodErr) {
+      console.warn('Could not set file permissions:', chmodErr);
+    }
 
     // Build the URL path for the uploaded file
     const photoUrl = `/uploads/candidates/${req.file.filename}`;

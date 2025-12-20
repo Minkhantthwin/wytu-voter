@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./src/config/swagger');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +37,15 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Serve static files (candidate photos)
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
+// Verify uploads directory exists
+const uploadsDir = path.join(__dirname, 'public/uploads/candidates');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true, mode: 0o755 });
+  console.log('✓ Created uploads directory:', uploadsDir);
+} else {
+  console.log('✓ Uploads directory exists:', uploadsDir);
+}
 
 // Routes
 const candidatesRoute = require('./src/routes/candidates');
