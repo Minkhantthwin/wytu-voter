@@ -64,8 +64,7 @@ if (process.env.NODE_ENV === 'production') {
   // Serve static files from React build
   app.use(express.static(path.join(__dirname, 'client/dist')));
 
-  // Handle React routing - return index.html for all non-API routes
-  app.get('*', (req, res) => {
+  app.get('/{*splat}', (req, res) => {
     if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
       res.sendFile(path.join(__dirname, 'client/dist', 'index.html'));
     }
