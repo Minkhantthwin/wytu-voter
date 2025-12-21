@@ -22,8 +22,8 @@ const getCookieId = (req, res) => {
     res.cookie('voter_id', cookieId, {
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
       httpOnly: true,
-      sameSite: 'lax', // Changed from 'strict' to 'lax' for cross-origin compatibility
-      secure: process.env.NODE_ENV === 'production', // Only secure in production
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
     });
   }
   return cookieId;
@@ -40,21 +40,22 @@ const getCookieId = (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Vote'
+ *             type: object
+ *             required:
+ *               - kingId
+ *               - queenId
+ *             properties:
+ *               kingId:
+ *                 type: integer
+ *               queenId:
+ *                 type: integer
+ *               fingerprint:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Vote submitted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
  *       400:
- *         description: Invalid request (missing or invalid candidate IDs)
+ *         description: Invalid request
  *       403:
  *         description: Already voted
  *       500:
@@ -62,18 +63,34 @@ const getCookieId = (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const { kingId, queenId } = req.body;
+    const { kingId, queenId, fingerprint } = req.body;
 
     // Validate input
     if (!kingId || !queenId) {
       return res.status(400).json({ error: 'Both kingId and queenId are required' });
     }
 
+    if (!fingerprint) {
+      return res.status(400).json({ error: 'Device fingerprint is required' });
+    }
+
     const ipAddress = getClientIP(req);
     const cookieId = getCookieId(req, res);
 
-    // Check if already voted
-    const existingVote = await prisma.vote.findUnique({
+    // Check if already voted by fingerprint (primary check)
+    const existingVoteByFingerprint = await prisma.vote.findUnique({
+      where: { fingerprint },
+    });
+
+    if (existingVoteByFingerprint) {
+      return res.status(403).json({ 
+        error: 'You have already voted from this device', 
+        alreadyVoted: true 
+      });
+    }
+
+    // Also check by IP + cookie as backup
+    const existingVoteByCookie = await prisma.vote.findUnique({
       where: {
         ipAddress_cookieId: {
           ipAddress,
@@ -82,8 +99,11 @@ router.post('/', async (req, res) => {
       },
     });
 
-    if (existingVote) {
-      return res.status(403).json({ error: 'You have already voted', alreadyVoted: true });
+    if (existingVoteByCookie) {
+      return res.status(403).json({ 
+        error: 'You have already voted', 
+        alreadyVoted: true 
+      });
     }
 
     // Validate candidates exist and are correct category
@@ -103,11 +123,12 @@ router.post('/', async (req, res) => {
 
     // Use transaction to ensure atomicity
     await prisma.$transaction([
-      // Create vote record
+      // Create vote record with fingerprint
       prisma.vote.create({
         data: {
           ipAddress,
           cookieId,
+          fingerprint,
           kingId: parseInt(kingId),
           queenId: parseInt(queenId),
         },
@@ -134,46 +155,6 @@ router.post('/', async (req, res) => {
     }
 
     res.status(500).json({ error: 'Failed to submit vote' });
-  }
-});
-
-/**
- * @swagger
- * /api/check:
- *   get:
- *     summary: Check if user has already voted
- *     tags: [Votes]
- *     responses:
- *       200:
- *         description: Vote status check result
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 hasVoted:
- *                   type: boolean
- *       500:
- *         description: Server error
- */
-router.get('/check', async (req, res) => {
-  try {
-    const ipAddress = getClientIP(req);
-    const cookieId = getCookieId(req, res);
-
-    const existingVote = await prisma.vote.findUnique({
-      where: {
-        ipAddress_cookieId: {
-          ipAddress,
-          cookieId,
-        },
-      },
-    });
-
-    res.json({ hasVoted: !!existingVote });
-  } catch (error) {
-    console.error('Error checking vote status:', error);
-    res.status(500).json({ error: 'Failed to check vote status' });
   }
 });
 

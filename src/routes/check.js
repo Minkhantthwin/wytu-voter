@@ -14,15 +14,36 @@ const getClientIP = (req) => {
   );
 };
 
+// Helper to get or create cookie ID
+const getCookieId = (req, res) => {
+  let cookieId = req.cookies.voter_id;
+  if (!cookieId) {
+    cookieId = uuidv4();
+    res.cookie('voter_id', cookieId, {
+      maxAge: 365 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+  }
+  return cookieId;
+};
+
 /**
  * @swagger
  * /api/check:
  *   get:
  *     summary: Check if user has already voted
  *     tags: [Votes]
+ *     parameters:
+ *       - in: query
+ *         name: fingerprint
+ *         schema:
+ *           type: string
+ *         description: Device fingerprint
  *     responses:
  *       200:
- *         description: Vote status
+ *         description: Vote status check result
  *         content:
  *           application/json:
  *             schema:
@@ -30,76 +51,37 @@ const getClientIP = (req) => {
  *               properties:
  *                 hasVoted:
  *                   type: boolean
- *                 votedAt:
- *                   type: string
- *                   format: date-time
- *                 votedFor:
- *                   type: object
- *                   properties:
- *                     king:
- *                       type: object
- *                       properties:
- *                         id:
- *                           type: integer
- *                         name:
- *                           type: string
- *                     queen:
- *                       type: object
- *                       properties:
- *                         id:
- *                           type: integer
- *                         name:
- *                           type: string
  *       500:
  *         description: Server error
  */
 router.get('/', async (req, res) => {
   try {
+    const { fingerprint } = req.query;
     const ipAddress = getClientIP(req);
-    let cookieId = req.cookies.voter_id;
+    const cookieId = getCookieId(req, res);
 
-    // If no cookie, generate one and return hasVoted: false
-    if (!cookieId) {
-      cookieId = uuidv4();
-      res.cookie('voter_id', cookieId, {
-        maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-        httpOnly: true,
-        sameSite: 'lax', // Changed from 'strict' to 'lax' for cross-origin compatibility
-        secure: process.env.NODE_ENV === 'production', // Only secure in production
+    // Check by fingerprint first (if provided)
+    if (fingerprint) {
+      const existingVoteByFingerprint = await prisma.vote.findUnique({
+        where: { fingerprint },
       });
-      return res.json({ hasVoted: false, cookieId });
+
+      if (existingVoteByFingerprint) {
+        return res.json({ hasVoted: true });
+      }
     }
 
-    // Check if vote exists
-    const existingVote = await prisma.vote.findUnique({
+    // Also check by IP + cookie
+    const existingVoteByCookie = await prisma.vote.findUnique({
       where: {
         ipAddress_cookieId: {
           ipAddress,
           cookieId,
         },
       },
-      include: {
-        king: {
-          select: { id: true, name: true },
-        },
-        queen: {
-          select: { id: true, name: true },
-        },
-      },
     });
 
-    if (existingVote) {
-      return res.json({
-        hasVoted: true,
-        votedAt: existingVote.votedAt,
-        votedFor: {
-          king: existingVote.king,
-          queen: existingVote.queen,
-        },
-      });
-    }
-
-    res.json({ hasVoted: false });
+    res.json({ hasVoted: !!existingVoteByCookie });
   } catch (error) {
     console.error('Error checking vote status:', error);
     res.status(500).json({ error: 'Failed to check vote status' });

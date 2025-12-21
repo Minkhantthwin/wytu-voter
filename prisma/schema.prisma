@@ -34,17 +34,19 @@ model Candidate {
 }
 
 model Vote {
-  id        Int      @id @default(autoincrement())
-  ipAddress String   @map("ip_address")
-  cookieId  String   @map("cookie_id")
-  kingId    Int?     @map("king_id")
-  queenId   Int?     @map("queen_id")
-  votedAt   DateTime @default(now()) @map("voted_at")
+  id          Int      @id @default(autoincrement())
+  ipAddress   String   @map("ip_address")
+  cookieId    String   @map("cookie_id")
+  fingerprint String?  @map("fingerprint")
+  kingId      Int?     @map("king_id")
+  queenId     Int?     @map("queen_id")
+  votedAt     DateTime @default(now()) @map("voted_at")
 
   king  Candidate? @relation("KingVotes", fields: [kingId], references: [id])
   queen Candidate? @relation("QueenVotes", fields: [queenId], references: [id])
 
   @@unique([ipAddress, cookieId])
+  @@unique([fingerprint])
   @@map("votes")
 }
 

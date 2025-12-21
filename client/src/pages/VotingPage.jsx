@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { candidatesAPI, voteAPI, settingsAPI } from '@/lib/api';
 import { getImageUrl } from '@/lib/utils';
+import { getDeviceFingerprint } from '@/lib/fingerprint';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -36,12 +37,28 @@ export default function VotingPage() {
   const [error, setError] = useState('');
   const [votingOpen, setVotingOpen] = useState(true);
   const [checkingVotingStatus, setCheckingVotingStatus] = useState(true);
+  const [fingerprint, setFingerprint] = useState(null);
 
   useEffect(() => {
-    checkVotingStatus();
-    checkVoteStatus();
-    fetchCandidates();
+    initializeVoting();
   }, []);
+
+  const initializeVoting = async () => {
+    try {
+      // Get device fingerprint first
+      const fp = await getDeviceFingerprint();
+      setFingerprint(fp);
+      
+      // Then check voting status with fingerprint
+      await Promise.all([
+        checkVotingStatus(),
+        checkVoteStatus(fp),
+        fetchCandidates(),
+      ]);
+    } catch (err) {
+      console.error('Failed to initialize:', err);
+    }
+  };
 
   const checkVotingStatus = async () => {
     try {
@@ -54,9 +71,9 @@ export default function VotingPage() {
     }
   };
 
-  const checkVoteStatus = async () => {
+  const checkVoteStatus = async (fp) => {
     try {
-      const response = await voteAPI.check();
+      const response = await voteAPI.check(fp);
       setHasVoted(response.data.hasVoted);
     } catch (err) {
       console.error('Failed to check vote status:', err);
@@ -98,7 +115,8 @@ export default function VotingPage() {
         return;
       }
       
-      await voteAPI.submit(selectedKing, selectedQueen);
+      // Submit vote with fingerprint
+      await voteAPI.submit(selectedKing, selectedQueen, fingerprint);
       
       setHasVoted(true);
       setShowSuccessDialog(true);
@@ -120,7 +138,7 @@ export default function VotingPage() {
   };
 
   // Show loading while checking voting status
-  if (checkingVotingStatus) {
+  if (checkingVotingStatus || !fingerprint) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-accent to-muted flex items-center justify-center">
         <div className="text-center">

@@ -61,8 +61,10 @@ export const candidatesAPI = {
 
 // Vote API
 export const voteAPI = {
-  submit: (kingId, queenId) => api.post('/vote', { kingId, queenId }),
-  check: () => api.get('/check'),
+  submit: (kingId, queenId, fingerprint) => 
+    api.post('/vote', { kingId, queenId, fingerprint }),
+  check: (fingerprint) => 
+    api.get('/check', { params: { fingerprint } }),
 };
 
 // Results API
