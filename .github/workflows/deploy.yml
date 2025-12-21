@@ -121,6 +121,10 @@ jobs:
             # Pull the latest image
             docker pull ghcr.io/${IMAGE_NAME}:latest
             
+            # Escape $ signs for docker-compose (double them)
+            TRAEFIK_AUTH_ESCAPED=$(echo "$TRAEFIK_AUTH" | sed 's/\$/\$\$/g')
+            STUDIO_AUTH_ESCAPED=$(echo "$STUDIO_AUTH" | sed 's/\$/\$\$/g')
+            
             # Create/Update .env file
             cat > .env << EOF
             DOMAIN=${DOMAIN}
@@ -128,8 +132,8 @@ jobs:
             DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
             JWT_SECRET=${JWT_SECRET}
             ACME_EMAIL=${ACME_EMAIL}
-            TRAEFIK_AUTH=${TRAEFIK_AUTH}
-            STUDIO_AUTH=${STUDIO_AUTH}
+            TRAEFIK_AUTH_ESCAPED=${TRAEFIK_AUTH_ESCAPED}
+            STUDIO_AUTH_ESCAPED=${STUDIO_AUTH_ESCAPED}
             IMAGE_NAME=${IMAGE_NAME}
             EOF
             

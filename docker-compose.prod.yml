@@ -49,7 +49,7 @@ services:
       - "traefik.http.routers.studio.tls=true"
       - "traefik.http.routers.studio.tls.certresolver=letsencrypt"
       - "traefik.http.routers.studio.middlewares=studio-auth"
-      - "traefik.http.middlewares.studio-auth.basicauth.users=${STUDIO_AUTH}"
+      - "traefik.http.middlewares.studio-auth.basicauth.users=${STUDIO_AUTH_ESCAPED}"
       - "traefik.http.services.studio.loadbalancer.server.port=5555"
 
   db:
@@ -105,7 +105,7 @@ services:
       - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_AUTH}"
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_AUTH_ESCAPED}"
 
 networks:
   wytu-network:
