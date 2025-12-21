@@ -31,17 +31,16 @@ export default function QuickStatsPage() {
         resultsAPI.getSummary(),
       ]);
 
-      const candidates = resultsRes.data;
-      const kings = candidates.filter(c => c.category === 'KING').sort((a, b) => b.voteCount - a.voteCount);
-      const queens = candidates.filter(c => c.category === 'QUEEN').sort((a, b) => b.voteCount - a.voteCount);
+      // API returns { kings: [], queens: [], totalVotes, timestamp }
+      const { kings, queens } = resultsRes.data;
 
       setStats({
         totalVotes: summaryRes.data.totalVotes,
-        totalCandidates: candidates.length,
-        kingsCount: kings.length,
-        queensCount: queens.length,
-        leadingKing: kings[0] || null,
-        leadingQueen: queens[0] || null,
+        totalCandidates: (kings?.length || 0) + (queens?.length || 0),
+        kingsCount: kings?.length || 0,
+        queensCount: queens?.length || 0,
+        leadingKing: kings?.[0] || null,
+        leadingQueen: queens?.[0] || null,
       });
     } catch (err) {
       console.error('Failed to fetch stats:', err);

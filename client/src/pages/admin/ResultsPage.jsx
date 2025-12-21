@@ -35,10 +35,10 @@ export default function ResultsPage() {
         resultsAPI.getSummary(),
       ]);
       
-      const kings = resultsRes.data.filter(c => c.category === 'KING').sort((a, b) => b.voteCount - a.voteCount);
-      const queens = resultsRes.data.filter(c => c.category === 'QUEEN').sort((a, b) => b.voteCount - a.voteCount);
+      // API already returns { kings: [], queens: [], totalVotes, timestamp }
+      const { kings, queens } = resultsRes.data;
       
-      setResults({ kings, queens });
+      setResults({ kings: kings || [], queens: queens || [] });
       setSummary(summaryRes.data);
     } catch (err) {
       console.error('Failed to fetch results:', err);
