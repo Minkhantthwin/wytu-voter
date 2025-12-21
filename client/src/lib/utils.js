@@ -18,12 +18,10 @@ export function getImageUrl(path) {
     return path;
   }
   
-  // Get the base URL without '/api' suffix
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-  const baseUrl = apiUrl.replace(/\/api$/, '');
-  
+  // In production, use relative paths (same origin)
+  // In development, we also use relative paths since Vite proxies /uploads
   // Ensure path starts with /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   
-  return `${baseUrl}${normalizedPath}`;
+  return normalizedPath;
 }
